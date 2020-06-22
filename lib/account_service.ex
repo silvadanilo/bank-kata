@@ -5,6 +5,7 @@ defmodule Bank.AccountService do
 
   alias __MODULE__
   alias Bank.AccountService.Transaction
+  alias Bank.Helper.TableFormat
 
   defstruct [initial_balance: 0, current_balance: 0, history: []]
 
@@ -25,34 +26,17 @@ defmodule Bank.AccountService do
   end
 
   def print_statement(account) do
-    ["Date", "Amount", "Balance"]
-    |> add_history(account)
-    |> to_table()
-  end
-
-  defp add_history(header, account) do
-    [header | Enum.map(account.history, &Transaction.formatted_list/1)]
-  end
-
-  defp to_table(statement) do
-    statement
-    |> Enum.map(&format_history_line/1)
-    |> Enum.join("\n")
+    TableFormat.new(" || ")
+    |> TableFormat.with_headers(["Date", "Amount", "Balance"])
+    |> TableFormat.with_content(Enum.map(account.history, &Transaction.to_list/1))
+    |> TableFormat.column_widths([10, 6, 7])
+    |> TableFormat.print()
   end
 
   defp apply_transaction(account, transaction = %Transaction{}) do
     account
     |> Map.replace!(:current_balance, transaction.new_balance)
     |> Map.update!(:history, fn history -> [transaction | history] end)
-  end
-
-  defp format_history_line([date, amount, balance]) do
-    [
-      date |> String.pad_trailing(10, " "),
-      amount |> String.pad_trailing(6, " "),
-      balance |> String.pad_trailing(7, " "),
-    ]
-    |> Enum.join(" || ")
   end
 
   def balance(%{current_balance: balance}) do
