@@ -6,7 +6,6 @@ defmodule Bank.AccountServiceTest do
 
   setup do
     Clock.init()
-    Clock.now_is(~U[2012-01-10 00:00:00.000000Z])
     :ok
   end
 
@@ -23,15 +22,24 @@ defmodule Bank.AccountServiceTest do
       AccountService.open(20)
       |> AccountService.deposit(1000)
       |> AccountService.deposit(2000)
-      |> AccountService.withdraw(500)
       |> AccountService.balance()
 
-    assert 2520 == balance
+    assert 3020 == balance
+  end
+
+  test "A client can withdraw money" do
+    balance =
+      AccountService.open(1000)
+      |> AccountService.withdraw(200)
+      |> AccountService.balance()
+
+    assert 800 == balance
   end
 
   test "Print statement returns a formatted table" do
     statement =
       AccountService.open()
+      |> and_now_is(~U[2012-01-10 00:00:00.000000Z])
       |> AccountService.deposit(1000)
       |> and_now_is(~U[2012-01-13 00:00:00.000000Z])
       |> AccountService.deposit(2000)
